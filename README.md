@@ -1,2 +1,2 @@
-# Mastering AI with LangChain
- Mastering AI with LangChain, by BPB Publications
+# Generative AI with LangChain
+ Generative AI with LangChain, by BPB Publications

@@ -1,0 +1,62 @@
+# Code for Chapter 7 - Real-World Data Science with Snowflake and Athena  
+# Book Number: 2268  
+# Description: This file contains all the code examples from Chapter 7, explaining the integration of Snowflake and Athena for data science applications.  
+
+# Install Snowflake and LangChain libraries
+pip install snowflake-connector-python langchain
+
+# Connect to Snowflake using Python
+import snowflake.connector
+
+conn = snowflake.connector.connect(
+    user='your_username',
+    password='your_password',
+    account='your_account_name',
+    warehouse='your_warehouse_name',
+    database='your_database_name',
+    schema='your_schema_name'
+)
+
+# Query data from Snowflake
+query = "SELECT * FROM customer_feedback WHERE created_at > DATEADD(month, -1, CURRENT_DATE())"
+cur = conn.cursor()
+cur.execute(query)
+feedback_texts = cur.fetchall()
+cur.close()
+conn.close()
+
+# Process feedback with LangChain
+from langchain.llms import OpenAI
+
+llm = OpenAI(api_key='<YOUR_OPENAI_API_KEY>')
+
+def analyze_sentiment(text):
+    response = llm.complete(prompt=f"What is the sentiment of this feedback? '{text}'", max_tokens=60)
+    return response
+
+sentiments = [analyze_sentiment(text[0]) for text in feedback_texts]
+
+# Install Boto3 for AWS Athena queries
+pip install boto3
+
+# Query data from Athena
+import boto3
+
+athena = boto3.client('athena', region_name='<YOUR_REGION>')
+
+def execute_athena_query(query, database, s3_output):
+    response = athena.start_query_execution(
+        QueryString=query,
+        QueryExecutionContext={'Database': database},
+        ResultConfiguration={'OutputLocation': s3_output}
+    )
+    return response['QueryExecutionId']
+
+query_id = execute_athena_query("SELECT * FROM user_interactions", '<YOUR_DATABASE>', 's3://<YOUR_S3_BUCKET>/')
+
+# Example of integrating Athena with LangChain
+def extract_features(description):
+    response = llm.complete(prompt=f"Extract key features from this description: '{description}'", max_tokens=60)
+    return response
+
+print(extract_features("This product is highly rated and recommended."))

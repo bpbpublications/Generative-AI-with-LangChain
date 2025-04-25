@@ -1,0 +1,15 @@
+a = "Hello World"     # str
+a = 20                # int
+a = 20.5              # float
+a = 1j                # complex
+a = ["apple", "banana", "cherry"]     # list
+a = ("apple", "banana", "cherry")     # tuple
+a = range(6)          # range
+a = {"name" : "John", "age" : 36}     # dict
+a = {"apple", "banana", "cherry"}     # set
+a = frozenset({"apple", "banana", "cherry"})   # frozenset
+a = True              # bool
+a = b"Hello"          # bytes
+a = bytearray(5)      # bytearray
+a = memoryview(bytes(5))  # memoryview
+a = None              # NoneType

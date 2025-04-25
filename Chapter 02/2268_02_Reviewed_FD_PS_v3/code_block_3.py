@@ -1,0 +1,6 @@
+myvar = "Priya"
+my_var = "Priya"
+_my_var = "Priya"
+myVar = "Priya"
+MYVAR = "Priya"
+myvar2 = "Priya"

@@ -1,0 +1,99 @@
+# Code for Chapter 5 - Integrating LangChain with AWS  
+# Book Number: 2268  
+# Description: This file contains all the code examples from Chapter 5, explaining the integration of LangChain with AWS, including setup, deployment, and advanced usage.  
+
+# AWS CLI Installation and Verification
+import subprocess
+
+def install_aws_cli():
+    print("Installing AWS CLI...")
+    try:
+        subprocess.run(["pip", "install", "awscli"], check=True)
+        print("AWS CLI installed successfully.")
+    except subprocess.CalledProcessError:
+        print("Failed to install AWS CLI. Please try manually.")
+
+install_aws_cli()
+
+# Configure AWS CLI
+subprocess.run(["aws", "configure"])
+
+# AWS SDK Installation
+try:
+    subprocess.run(["pip", "install", "boto3"], check=True)
+    print("Boto3 installed successfully.")
+except subprocess.CalledProcessError:
+    print("Failed to install Boto3. Please try manually.")
+
+# List S3 Buckets
+import boto3
+
+def list_s3_buckets():
+    s3 = boto3.client("s3")
+    response = s3.list_buckets()
+    for bucket in response.get("Buckets", []):
+        print(f"- {bucket['Name']}")
+
+list_s3_buckets()
+
+# Dockerfile for LangChain Application
+# FROM python:3.9-slim
+# WORKDIR /app
+# COPY . /app
+# RUN pip install --no-cache-dir -r requirements.txt
+# EXPOSE 8080
+# CMD ["python", "app.py"]
+
+# Deploying LangChain on AWS Lambda
+import json
+from langchain.llms import OpenAI
+
+def lambda_handler(event, context):
+    llm = OpenAI(temperature=0.7)
+    user_input = event['queryStringParameters']['input']
+    response = llm(user_input)
+    return {
+        'statusCode': 200,
+        'body': json.dumps({'response': response})
+    }
+
+# SageMaker Model Integration
+import sagemaker
+from sagemaker.huggingface import HuggingFace
+
+def train_model():
+    hyperparameters = {
+        'epochs': 3,
+        'train_batch_size': 32,
+        'model_name': 'bert-base-uncased'
+    }
+    huggingface_estimator = HuggingFace(
+        entry_point='train.py',
+        source_dir='./source',
+        instance_type='ml.p3.2xlarge',
+        instance_count=1,
+        role="<Your-IAM-Role-ARN>",
+        transformers_version='4.6',
+        pytorch_version='1.7',
+        py_version='py3',
+        hyperparameters=hyperparameters
+    )
+    huggingface_estimator.fit({'train': 's3://<your-bucket>/train-data/'})
+
+train_model()
+
+# Amazon Comprehend for NLP
+comprehend_client = boto3.client('comprehend')
+
+def analyze_text_with_comprehend(text, analysis_type):
+    if analysis_type == "sentiment":
+        response = comprehend_client.detect_sentiment(Text=text, LanguageCode="en")
+        return response['Sentiment']
+    elif analysis_type == "entities":
+        response = comprehend_client.detect_entities(Text=text, LanguageCode="en")
+        return response['Entities']
+    elif analysis_type == "language":
+        response = comprehend_client.detect_dominant_language(Text=text)
+        return response['Languages'][0]['LanguageCode']
+
+print(analyze_text_with_comprehend("AWS is great!", "sentiment"))

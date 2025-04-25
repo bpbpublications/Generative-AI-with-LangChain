@@ -1,0 +1,67 @@
+# Code for Chapter 6 - LangChain and Azure Integration  
+# Book Number: 2268  
+# Description: This file contains all the code examples from Chapter 6, explaining the integration of LangChain with Azure, including setup, deployment, and advanced usage.  
+
+# Install Azure SDK for Python
+pip install azure-cognitiveservices-vision azure-ai-formrecognizer azure-storage-blob
+
+# Install LangChain and supporting libraries
+pip install langchain openai
+
+# Azure Form Recognizer Example
+from azure.ai.formrecognizer import FormRecognizerClient
+from azure.core.credentials import AzureKeyCredential
+
+# Azure Form Recognizer credentials
+endpoint = "https://<your-form-recognizer-endpoint>.cognitiveservices.azure.com/"
+key = "<your-form-recognizer-key>"
+
+client = FormRecognizerClient(endpoint, AzureKeyCredential(key))
+
+def extract_patient_data(document_path):
+    """Extracts patient data from a document (e.g., PDF form)."""
+    with open(document_path, "rb") as document:
+        poller = client.begin_recognize_content(document)
+        result = poller.result()
+        for page in result:
+            for table in page.tables:
+                print("Extracted Table Data:")
+                for cell in table.cells:
+                    print(f"Text: {cell.text} | Row: {cell.row_index} | Col: {cell.column_index}")
+    return result
+
+# Azure ML Model Example
+from azureml.core import Workspace, Model, Webservice
+
+# Azure ML Workspace and Model
+workspace = Workspace(subscription_id="<your-subscription-id>",
+                      resource_group="<your-resource-group>",
+                      workspace_name="<your-workspace-name>")
+
+model = Model(workspace, name="health-risk-prediction-model")
+service = Webservice(workspace, name="health-risk-prediction-service")
+
+def predict_health_risk(patient_data):
+    """Predicts health risks based on patient data using Azure ML."""
+    input_data = {"data": patient_data}
+    prediction = service.run(input_data)
+    print("Prediction:", prediction)
+    return prediction
+
+# Amazon Comprehend Example for Sentiment Analysis
+import boto3
+
+comprehend_client = boto3.client('comprehend')
+
+def analyze_text_with_comprehend(text, analysis_type):
+    if analysis_type == "sentiment":
+        response = comprehend_client.detect_sentiment(Text=text, LanguageCode="en")
+        return response['Sentiment']
+    elif analysis_type == "entities":
+        response = comprehend_client.detect_entities(Text=text, LanguageCode="en")
+        return response['Entities']
+    elif analysis_type == "language":
+        response = comprehend_client.detect_dominant_language(Text=text)
+        return response['Languages'][0]['LanguageCode']
+
+print(analyze_text_with_comprehend("Azure AI is powerful!", "sentiment"))
